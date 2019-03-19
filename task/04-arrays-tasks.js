@@ -220,7 +220,7 @@ function toCsvText(arr) {
  *   [ 10, 100, -1 ]      => [ 100, 10000, 1 ]
  */
 function toArrayOfSquares(arr) {
-   return arr.map(x => x ** 2);
+   return arr.map(x => x * x);
 }
 
 

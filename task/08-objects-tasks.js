@@ -23,8 +23,11 @@
  *    console.log(r.getArea());   // => 200
  */
 function Rectangle(width, height) {
-    throw new Error('Not implemented');
+    this.width = width;
+    this.height = height;
 }
+
+Rectangle.prototype.getArea = function () { return this.width * this.height;}
 
 
 /**
@@ -38,7 +41,7 @@ function Rectangle(width, height) {
  *    { width: 10, height : 20 } => '{"height":10,"width":20}'
  */
 function getJSON(obj) {
-    throw new Error('Not implemented');
+    return JSON.stringify(obj);
 }
 
 
@@ -54,7 +57,8 @@ function getJSON(obj) {
  *
  */
 function fromJSON(proto, json) {
-    throw new Error('Not implemented');
+    return Object.setPrototypeOf(JSON.parse(json), proto);
+    //dynamic cast from param1 to param2. Destroy-collect style
 }
 
 
@@ -107,36 +111,163 @@ function fromJSON(proto, json) {
  */
 
 const cssSelectorBuilder = {
-
     element: function(value) {
-        throw new Error('Not implemented');
+        let builder = new SelectorBuilder();
+        return builder.element(value);
     },
 
     id: function(value) {
-        throw new Error('Not implemented');
+        let builder = new SelectorBuilder();
+        return builder.id(value);
     },
 
     class: function(value) {
-        throw new Error('Not implemented');
+        let builder = new SelectorBuilder();
+        return builder.class(value);
     },
 
     attr: function(value) {
-        throw new Error('Not implemented');
+        let builder = new SelectorBuilder();
+        return builder.attr(value);
     },
 
     pseudoClass: function(value) {
-        throw new Error('Not implemented');
+        let builder = new SelectorBuilder();
+        return builder.pseudoClass(value);
     },
 
     pseudoElement: function(value) {
-        throw new Error('Not implemented');
+        let builder = new SelectorBuilder();
+        return builder.pseudoElement(value);
     },
 
     combine: function(selector1, combinator, selector2) {
-        throw new Error('Not implemented');
-    },
+        return selector1.chain(combinator, selector2);
+    }
 };
 
+let priority = Object.freeze({
+    element: 0,
+    id: 1,
+    class: 2,
+    attr: 3,
+    pseudoClass: 4,
+    pseudoElement: 5
+});
+
+class SelectorBuilder {
+
+    constructor() {
+        this.level = priority.element;
+        this.follow = [];
+        this.content = {
+            element: undefined,
+            id: undefined,
+            classes: [],
+            attributes: [],
+            pseudoClasses: [],
+            pseudoElement: undefined
+        };
+    }
+
+    element(value) {
+        if (this.level > priority.element) {
+            throw new Error(SelectorBuilder.ORDER_ERROR);
+        }
+
+        if (this.content.element === undefined) {
+            this.content.element = value;
+            return this;
+        } else {
+            throw new Error(SelectorBuilder.OCCUR_ERROR);
+        }
+    }
+
+    id(value) {
+        if (this.level > priority.id) {
+            throw new Error(SelectorBuilder.ORDER_ERROR);
+        }
+        this.level = priority.id;
+
+        if (this.content.id === undefined) {
+            this.content.id = value;
+            return this;
+        } else {
+            throw new Error(SelectorBuilder.OCCUR_ERROR);
+        }
+    }
+
+    class(value) {
+        if (this.level > priority.class) {
+            throw new Error(SelectorBuilder.ORDER_ERROR);
+        }
+        this.level = priority.class;
+
+        this.content.classes.push(value);
+        return this;
+    }
+
+    attr(value) {
+        if (this.level > priority.attr) {
+            throw new Error(SelectorBuilder.ORDER_ERROR);
+        }
+        this.level = priority.attr;
+
+        this.content.attributes.push(value);
+        return this;
+    }
+
+    pseudoClass(value) {
+        if (this.level > priority.pseudoClass) {
+            throw new Error(SelectorBuilder.ORDER_ERROR);
+        }
+        this.level = priority.pseudoClass;
+
+        this.content.pseudoClasses.push(value);
+        return this;
+    }
+
+    pseudoElement(value) {
+        if (this.level > priority.pseudoElement) {
+            throw new Error(SelectorBuilder.ORDER_ERROR);
+        }
+        this.level = priority.pseudoElement;
+
+        if (this.content.pseudoElement === undefined) {
+            this.content.pseudoElement = value;
+            return this;
+        } else {
+            throw new Error(SelectorBuilder.OCCUR_ERROR);
+        }
+    }
+
+    stringify() {
+        return (this.content.element !== undefined ? this.content.element : '') +
+            (this.content.id !== undefined ? '#' + this.content.id : '') +
+            (this.content.classes.length ? '.' + this.content.classes.join('.') : '') +
+            (this.content.attributes.length ? this.content.attributes.map(elem => `[${elem}]`).join('') : '') +
+            (this.content.pseudoClasses.length ? ':' + this.content.pseudoClasses.join(':') : '') +
+            (this.content.pseudoElement !== undefined ? '::' + this.content.pseudoElement : '') +
+            (this.follow.length ?
+                this.follow.map(elem => ` ${elem.combinator} ` + elem.element.stringify()).join('') : '');
+    }
+
+    chain(combinator, chainable) {
+    this.follow.push({combinator: combinator, element: chainable});
+        return this;
+    }
+}
+
+
+Object.defineProperty(SelectorBuilder, 'ORDER_ERROR',{
+    value: 'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element',
+    writable: false
+});
+
+Object.defineProperty(SelectorBuilder, 'OCCUR_ERROR',{
+    value: 'Element, id and pseudo-element should not occur more then one time inside the selector',
+    writable: false
+});
 
 module.exports = {
     Rectangle: Rectangle,

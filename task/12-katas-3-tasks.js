@@ -28,7 +28,47 @@
  *   'NULL'      => false 
  */
 function findStringInSnakingPuzzle(puzzle, searchStr) {
-    throw new Error('Not implemented');
+    let Visited = (point) => {
+		for (let pos of visited)
+            if ((pos[0] == point[0]) && (pos[1] == point[1])) 
+                return true;
+		return false;
+	}
+
+	let Parse = (start, point) => {
+        //puzzle = array of words, start = current letter of search str, point is [i,j] in puzzle, where are we now
+		if (start == searchStr.length - 1)
+            return (puzzle[point[0]][point[1]] == searchStr[start]) && (!Visited([point[0], point[1]]));
+            //case for last letter
+        if ((puzzle[point[0]][point[1]] == searchStr[start]) && (!Visited([point[0], point[1]]))) {
+            let result = false;
+            visited.push([point[0], point[1]]);
+            //this point is visited
+            if (point[0] > 0)
+                result |= Parse(start + 1, [point[0] - 1, point[1]]);
+                //parse up
+            if (point[1] < puzzle[point[0]].length - 1)
+                result |= Parse(start + 1, [point[0], point[1] + 1]);
+                //parse right
+            if (point[0] < puzzle.length - 1)
+                result |= Parse(start + 1, [point[0] + 1, point[1]]);
+                //parse down
+            if (point[1] > 0)
+                result |= Parse(start + 1, [point[0], point[1] - 1]);
+                //parse left
+            visited.pop();
+            return result;
+        }
+        return false;
+	}
+	
+	let result = false;
+	let visited = new Array();
+	for (let i = 0; i < puzzle.length; i++)
+		for (let j = 0; j < puzzle[i].length; j++)
+            result |= Parse(0, [i, j]);
+            
+    return result;
 }
 
 
@@ -45,7 +85,28 @@ function findStringInSnakingPuzzle(puzzle, searchStr) {
  *    'abc' => 'abc','acb','bac','bca','cab','cba'
  */
 function* getPermutations(chars) {
-    throw new Error('Not implemented');
+    function getAllPermutations(string) {
+        var results = [];        
+        if (string.length < 1) {
+            results.push(string);
+            return results;
+        }        
+        for (var i = 0; i < string.length; i++) {
+            var firstChar = string[i];
+            var charsLeft = string.substring(0, i) + string.substring(i + 1);
+            //get substr for permutation
+            var partPerms = getAllPermutations(charsLeft);
+            //get perms of substring
+            for (var j = 0; j < partPerms.length; j++) {
+                results.push(firstChar + partPerms[j]);
+                //add results in format: current char + every part permutation
+            }
+        }
+        return results;
+    }
+    for(let perm of getAllPermutations(chars)){
+        yield perm;
+    }
 }
 
 
@@ -65,7 +126,24 @@ function* getPermutations(chars) {
  *    [ 1, 6, 5, 10, 8, 7 ] => 18  (buy at 1,6,5 and sell all at 10)
  */
 function getMostProfitFromStockQuotes(quotes) {
-    throw new Error('Not implemented');
+    let maxProfit = 0;
+    let i = quotes.length;
+
+    while (--i && quotes[i] < quotes[i - 1]) {
+        quotes.pop();
+    }//pop from back, bcz no profit of buing 3 2 1
+
+    while (quotes.length) {
+        let maxIndex = quotes.reduce((maxIndex, elem, index) => maxIndex = elem > quotes[maxIndex] ? index : maxIndex, 0);
+        //get point with max price. it must be higher that all previous to get profit
+        for (i = 0; i < maxIndex; i++) {
+            maxProfit += quotes[maxIndex] - quotes[i];
+        }
+        quotes = quotes.slice(maxIndex + 1);
+        //go again to right part of quotes
+    }
+
+    return maxProfit;
 }
 
 
@@ -89,16 +167,25 @@ function UrlShortener() {
                            "0123456789-_.~!*'();:@&=+$,/?#[]";
 }
 
+var md5 = require('md5');
+const storage = new Map();
+
 UrlShortener.prototype = {
 
     encode: function(url) {
-        throw new Error('Not implemented');
+        let allowedLength = Math.floor(url.length / 1.5);
+        let key = md5(url);
+        if(key.length > allowedLength)
+            key = key.slice(0, allowedLength);
+        storage.set(key, url);
+        return key;
     },
     
     decode: function(code) {
-        throw new Error('Not implemented');
+        return storage.get(code);
     } 
 }
+
 
 
 module.exports = {

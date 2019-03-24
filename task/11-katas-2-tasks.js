@@ -256,42 +256,9 @@ function getPokerHandRank(hand) {
  *    '|             |\n'+              '+-----+\n'           '+-------------+\n'
  *    '+-------------+\n'
  */
-function* getFigureRectangles(figure) {
-    let figureArr = figure.split('\n');
-	let rectangle = new Array();
-	for (let i = 0; i < figureArr.length; i++)
-		for (let j = 0; j < figureArr[i].length; j++)
-			if (figureArr[i][j] == '+') {
-				rectangle = GetRectangle(figureArr, i, j);
-				if (rectangle != null)
-					yield DrawRectangle(rectangle[1], rectangle[0]);
-			}
-}
 
-function GetRectangle(figure, row, column) {
-	for (let i = row + 1; i < figure.length; i++) {
-		if (figure[i][column] == '+') {
-			for (let j = column + 1; j < figure[row].length; j++) {
-				if (figure[i][j] == "+") {
-					if (figure[row][j] == "+") {
-						let flag = true;
-						for (let k = row + 1; k < i; k++)
-							if (figure[k][j] != '|') {
-								flag = false;
-								break;
-							}
-						if (flag) return [i - row + 1, j - column + 1];
-					}
-				} else if (figure[i][j] != '-') break;
-			}
-		} else if (figure[i][column] != '|') break;
-	}
-	return null;
-}
-	
-function DrawRectangle(width, height) {
-    return '+' + '-'.repeat(width - 2) + '+\n' + ('|' + ' '.repeat(width - 2) + 
-            '|\n').repeat(height - 2) + '+' + '-'.repeat(width - 2) + '+\n';
+function* getFigureRectangles(figure) {
+    throw new Error('Not implemented');
 }
 
 

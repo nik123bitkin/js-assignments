@@ -167,18 +167,28 @@ function UrlShortener() {
                            "0123456789-_.~!*'();:@&=+$,/?#[]";
 }
 
-var md5 = require('md5');
 const storage = new Map();
+
+String.prototype.hashCode = function() {
+    var hash = 0, i, chr;
+    if (this.length === 0) return hash;
+    for (i = 0; i < this.length; i++) {
+      chr   = this.charCodeAt(i);
+      hash  = ((hash << 5) - hash) + chr;
+      hash |= 0; // Convert to 32bit integer
+    }
+    return hash;
+};
+
 
 UrlShortener.prototype = {
 
     encode: function(url) {
         let allowedLength = Math.floor(url.length / 1.5);
-        let key = md5(url);
-        if(key.length > allowedLength)
-            key = key.slice(0, allowedLength);
-        storage.set(key, url);
-        return key;
+        let key = url.hashCode();
+        let s = key.toString(10);
+        storage.set(s, url);
+        return s;
     },
     
     decode: function(code) {

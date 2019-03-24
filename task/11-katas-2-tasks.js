@@ -34,7 +34,38 @@
  *
  */
 function parseBankAccount(bankAccount) {
-    throw new Error('Not implemented');
+    let ans = 0;
+    for (let i = 0; i < bankAccount.length / 3 - 1; i += 3) {
+        const dig= [bankAccount.slice(i, i + 3),
+            bankAccount.slice(i + 28, i + 31),
+            bankAccount.slice(i + 56, i + 59)];
+
+        let num = 0;
+        if(dig[0][1] == ' ' && dig[1][1] == ' ' && dig[2][1] == ' '){
+            num = 1;
+        }else if(dig[0][1] == '_' && dig[1][1] == ' ' && dig[2][1] == ' '){
+            num = 7;
+        }else if(dig[0][1] == '_' && dig[1][1] == ' ' && dig[2][1] == '_'){
+            num = 0;
+        }else if(dig[0][1] == ' ' && dig[1][1] == '_' && dig[2][1] == ' '){
+            num = 4;
+        }else if(dig[1] == '|_|' && dig[2] == '|_|'){
+            num = 8;
+        }else if(dig[1] == ' _|' && dig[2] == ' _|'){
+            num = 3;
+        }else if(dig[1] == '|_|' && dig[2] == ' _|'){
+            num = 9;
+        }else if(dig[1] == ' _|' && dig[2] == '|_ '){
+            num = 2;
+        }else if(dig[1] == '|_ ' && dig[2] == '|_|'){
+            num = 6;
+        }else{
+            num = 5;
+        }
+        
+        ans = ans * 10 + num;
+    }
+    return ans;
 }
 
 
@@ -63,7 +94,31 @@ function parseBankAccount(bankAccount) {
  *                                                                                                'characters.'
  */
 function* wrapText(text, columns) {
-    throw new Error('Not implemented');
+    if(columns > text.length){
+        yield text;
+    }else{
+        let words = text.split(' ');
+        let buf = [];
+        buf.push(words[0]);
+        let len = words[0].length;
+        for(let i = 1; i < words.length; i++){
+            if(len + words[i].length + 1 <= columns){
+                buf.push(words[i]);
+                len += words[i].length + 1;
+            }else{
+                yield buf.join(' ');
+                buf.length = 0;
+                len = 0;
+                buf.push(words[i]);
+                len = words[i].length;
+            }
+        }
+        if(buf.length){
+            yield buf.join(' ');
+            buf.length = 0;
+            len = 0;
+        }
+    }
 }
 
 
@@ -100,7 +155,74 @@ const PokerRank = {
 }
 
 function getPokerHandRank(hand) {
-    throw new Error('Not implemented');
+    //hand.sort();//♥ ♠ ♦ ♣
+
+    let getSuit = card =>  card[card.length - 1] == '♥' ? 0 :
+                            card[card.length - 1] == '♦' ? 1 :
+                            card[card.length - 1] == '♣' ? 2 : 3;
+
+    let rankToNum = rank => isNaN(parseInt(rank)) ? (11 + ['J', 'Q', 'K', 'A'].indexOf(rank)) : parseInt(rank);
+    let getRank = card => rankToNum(card.length == 3 ? card.slice(0, 2) : card[0]);
+
+    let cards = [[]];
+    for(let h of hand)
+        cards.push([getRank(h), getSuit(h)]);
+    cards.shift();
+    cards.sort((a,b) => a[0] - b[0]);
+    if (cards[0][1] == cards[1][1] &&
+        cards[1][1] == cards[2][1] &&
+        cards[2][1] == cards[3][1] &&
+        cards[3][1] == cards[4][1]){
+        if((cards[0][0] == cards[1][0] - 1 &&
+            cards[1][0] == cards[2][0] - 1 &&
+            cards[2][0] == cards[3][0] - 1 &&
+            cards[3][0] == cards[4][0] - 1) ||
+            (cards[0][0] == 2 &&
+                cards[1][0] == 3 &&
+                cards[2][0] == 4 &&
+                cards[3][0] == 5 &&
+                cards[4][0] == 14)){
+            return PokerRank.StraightFlush;
+        }else{
+            return PokerRank.Flush;
+        }
+    }else if(cards[0][0] == cards[3][0] ||
+        cards[1][0] == cards[4][0]){
+            return PokerRank.FourOfKind;
+    }else if((cards[0][0] == cards[1][0] && cards[2][0] == cards[3][0] && cards[3][0] == cards[4][0]) ||
+             (cards[0][0] == cards[1][0] && cards[1][0] == cards[2][0] && cards[3][0] == cards[4][0])){
+        return PokerRank.FullHouse;
+    }else if((cards[0][0] == cards[1][0] - 1 &&
+        cards[1][0] == cards[2][0] - 1 &&
+        cards[2][0] == cards[3][0] - 1 &&
+        cards[3][0] == cards[4][0] - 1) ||
+        (cards[0][0] == 2 &&
+            cards[1][0] == 3 &&
+            cards[2][0] == 4 &&
+            cards[3][0] == 5 &&
+            cards[4][0] == 14)){
+            return PokerRank.Straight;
+    }else if((cards[0][0] == cards[1][0] && cards[1][0] == cards[2][0]) ||
+            (cards[1][0] == cards[2][0] && cards[2][0] == cards[3][0]) ||
+            (cards[2][0] == cards[3][0] && cards[3][0] == cards[4][0])){
+        return PokerRank.ThreeOfKind;
+    }else {
+        let equals = [];
+        equals.push(cards[0][0] == cards[1][0]);
+        equals.push(cards[1][0] == cards[2][0]);
+        equals.push(cards[2][0] == cards[3][0]);
+        equals.push(cards[3][0] == cards[4][0]);
+        if(equals.filter(el => el == true).length > 1){
+            return PokerRank.TwoPairs;
+        }else{
+            if(equals.filter(el => el == true).length == 0){
+                return PokerRank.HighCard;
+            }else{
+                return PokerRank.OnePair;
+            }
+        }
+    }
+    
 }
 
 
@@ -135,7 +257,41 @@ function getPokerHandRank(hand) {
  *    '+-------------+\n'
  */
 function* getFigureRectangles(figure) {
-   throw new Error('Not implemented');
+    let figureArr = figure.split('\n');
+	let rectangle = new Array();
+	for (let i = 0; i < figureArr.length; i++)
+		for (let j = 0; j < figureArr[i].length; j++)
+			if (figureArr[i][j] == '+') {
+				rectangle = GetRectangle(figureArr, i, j);
+				if (rectangle != null)
+					yield DrawRectangle(rectangle[1], rectangle[0]);
+			}
+}
+
+function GetRectangle(figure, row, column) {
+	for (let i = row + 1; i < figure.length; i++) {
+		if (figure[i][column] == '+') {
+			for (let j = column + 1; j < figure[row].length; j++) {
+				if (figure[i][j] == "+") {
+					if (figure[row][j] == "+") {
+						let flag = true;
+						for (let k = row + 1; k < i; k++)
+							if (figure[k][j] != '|') {
+								flag = false;
+								break;
+							}
+						if (flag) return [i - row + 1, j - column + 1];
+					}
+				} else if (figure[i][j] != '-') break;
+			}
+		} else if (figure[i][column] != '|') break;
+	}
+	return null;
+}
+	
+function DrawRectangle(width, height) {
+    return '+' + '-'.repeat(width - 2) + '+\n' + ('|' + ' '.repeat(width - 2) + 
+            '|\n').repeat(height - 2) + '+' + '-'.repeat(width - 2) + '+\n';
 }
 
 

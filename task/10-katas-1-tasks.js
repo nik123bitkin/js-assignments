@@ -88,6 +88,7 @@ function createCompassPoints() {
 function* expandBraces(str) {
     let out = [str];
     let regex = /\{[^\{\}]*?\}/;
+    //regex to match
     let over = false;
     while (!over) {
         over = true;
@@ -98,8 +99,10 @@ function* expandBraces(str) {
             if (matches) {
                 over = false;
                 let opts = matches[0].slice(1, -1).split(',');
+                //get all variants
                 for (let opt of opts) {
                     temp.push(s.replace(matches[0], opt));
+                    //push clear variant
                 }
             } else {
                 temp.push(s);
@@ -108,6 +111,7 @@ function* expandBraces(str) {
         out = temp;
     }
     out = [...new Set(out)];
+    //creating set to avoid duplicates
 
     for (let s of out) {
         yield s;

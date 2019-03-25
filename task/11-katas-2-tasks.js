@@ -258,7 +258,83 @@ function getPokerHandRank(hand) {
  */
 
 function* getFigureRectangles(figure) {
-    throw new Error('Not implemented');
+    //throw new Error('Not implemented');
+    figure = figure.split('\n');
+    figure.pop();
+
+    let figures = [[]];
+
+    function GetRect(a,b){
+        if(figure[a][b + 1] != undefined && figure[a][b + 1] != '-' && figure[a][b + 1] != '+')
+            return;
+        if(figure[a + 1][b] != undefined && figure[a + 1][b] != '|' && figure[a + 1][b] != '+')
+            return;
+        
+        let k = a, l = b + 1;
+        let len, wid;
+        if(figure[k][l + 1] == '+'){
+            len = 0;
+        }else{
+        while(true){
+            if(figure[k][l] == '+'){
+                if(l == figure[0].length - 1 || figure[k + 1][l] == '|')
+                    break;
+            }
+            l++;         
+        }
+        len = l - b - 1;
+    }
+        k = a + 1; l = b;
+        while(true){
+            if(figure[k][l] == '+'){
+                if(k == figure.length - 1 || figure[k][l + 1] == '-')
+                    break;
+            }
+            k++;  
+        }
+        wid = k - a - 1;
+        if(figure[a + wid + 1][b + len + 1] == '+')
+            figures.push([len, wid]);
+        return;
+    }
+
+    function Construct(l, w){
+        let it = [];
+        for(var i = 0; i < (l + 3)*(w + 2); i++)
+            it.push(' ');
+        it[0] = '+';
+        it[l + 1] = '+';
+        it[it.length - 2] = '+';
+        it[it.length - l - 3] = '+';
+        for(var i = 0; i < w + 2; i++){
+            it[i + (l + 2)*(i + 1)] = '\n';
+        }
+        for(var i = 1; i < l + 1; i++)
+            it[i] = '-';
+        for(var i = it.length - l - 2; i < it.length - 2; i++)
+            it[i] = '-';
+        //to fix
+        for(var i = l + 3; i < it.length - l - 4; i += l + 3){
+            it[i] = '|';
+            it[i + l + 1] = '|';
+        }
+        //to fix
+        return it.join('');
+    }
+
+    // for(let i = 0; i< figure.length; i++)
+    //     for(let j = 0; j < figure[0].length; i++)
+    //         visited[i][j] = false;
+
+    for(let i = 0; i< figure.length; i++)
+        for(let j = 0; j < figure[0].length; j++){
+            if(figure[i][j] == '+' && i != figure.length - 1 && j != figure[0].length - 1)
+                if((figure[i][j + 1] == '-' && figure[i + 1][j] == '|') || (figure[i][j + 1] == '+' && figure[i + 1][j] == '+'))
+                GetRect(i,j);
+        }
+    figures.shift();
+    for(let item of figures)
+        yield Construct(item[0], item[1]);
 }
 
 
